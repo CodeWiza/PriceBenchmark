@@ -12,7 +12,7 @@ st.set_page_config(page_title="Price Benchmark Analysis",page_icon=":bar_chart:"
 image_path = "logo.png"
 
 # Read the image file as bytes
-image_bytes = image_path.read_bytes()
+# image_bytes = image_path.read_bytes()
 
 # Encode the image bytes as base64
 encoded_image = image_path
