@@ -9,7 +9,7 @@ import base64
 st.set_page_config(page_title="Price Benchmark Analysis",page_icon=":bar_chart:", layout="wide")
 
 # Get the file path of the image
-image_path = "logo.png"
+image_path = "https://github.com/CodeWiza/PriceBenchmarking-Dashboard/blob/main/logo.png"
 
 # Read the image file as bytes
 # image_bytes = image_path.read_bytes()
