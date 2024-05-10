@@ -2,123 +2,171 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from streamlit_elements import elements, mui, html
+import plotly.graph_objects as go
+from pathlib import Path
+import base64
 
-# Streamlit theme with Purple and White (adjust colors to your preference)
-st.set_page_config(page_title="Competitor Price Analysis", layout="wide")
+st.set_page_config(page_title="Price Benchmark Analysis",page_icon=":bar_chart:", layout="wide")
 
-with st.sidebar:
-  st.header("Configuration")
+# Get the file path of the image
+image_path = Path("PriceBenchmarking-Dashboard/logo.png")
 
-# Upload CSV function
-def upload_csv():
-  uploaded_file = st.sidebar.file_uploader("Upload CSV File", type="csv")
+# Read the image file as bytes
+image_bytes = image_path.read_bytes()
+
+# Encode the image bytes as base64
+encoded_image = base64.b64encode(image_bytes).decode()
+
+# Display the image in the sidebar
+st.sidebar.markdown(
+    f"""
+    <style>
+    .sidebar-image {{
+        max-width: 100%;
+        height: auto;
+    }}
+    </style>
+    <img src="data:image/png;base64,{encoded_image}" alt="Sidebar Image" class="sidebar-image">
+    """,
+    unsafe_allow_html=True
+)
+st.sidebar.header("Filters")
+
+# Upload Files
+def upload_csv_myproducts():
+  uploaded_file = st.file_uploader("Upload Current Product Pricing", type="xlsx")
   if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    return df
+    df1 = pd.read_excel(uploaded_file)
+    return df1
+  else:
+    return None
+def upload_csv_competitors():
+  uploaded_file = st.file_uploader("Upload Market Pricing", type="xlsx")
+  if uploaded_file is not None:
+    df2 = pd.read_excel(uploaded_file)
+    return df2
   else:
     return None
 
-# Read uploaded CSV files
-df = upload_csv()
+# ---- MAINPAGE ----
+st.title("Price Benchmark Analysis")
 
-# Sidebar options (assuming data has these columns)
-if df is not None:
-  # Supplier Name dropdown
-  selected_supplier = st.sidebar.selectbox("Supplier Name", df["Supplier Name"].unique())
+# Read uploaded Excel files
+with st.expander("Upload Data", expanded= True): 
+  df_self = upload_csv_myproducts()
+  df_comp = upload_csv_competitors()
 
-  # Filter the DataFrame based on the selected supplier
-  supplier_df = df[df["Supplier Name"] == selected_supplier]
+with st.expander("Graphs", expanded= True):
+  if df_self is not None and df_comp is not None:
 
-  # Country dropdown (filtered based on selected supplier)
-  selected_country = st.sidebar.selectbox("Country", supplier_df["Country"].unique())
+    #Displaying uploaded Excel files in a dropdown
+    #with st.expander("View Uploaded data"): 
+    #  st.write(df_self)
+    #  st.write(df_comp)
+      
+    # ALL SELECTIONS FOR SELF QUOTATION
 
-  # Product Name dropdown (filtered based on selected supplier and country)
-  supplier_country_df = supplier_df[supplier_df["Country"] == selected_country]
-  selected_product = st.sidebar.selectbox("Product Name", supplier_country_df["Product Name"].unique())
+    # Self ProductName dropdown
+    self_product_selected = st.sidebar.multiselect("Product Name", df_self["Product Name"].unique())
 
-  # Price filter
-  price_filter = st.sidebar.slider('Unit Price (Less Than)', 0, 10000)
+    # Convert the list of selected product names to a pandas Series
+    self_product_selected = pd.Series(self_product_selected)
 
-  # Convert "Unit Price" column to numeric
-  df["Unit Price"] = pd.to_numeric(df["Unit Price"], errors="coerce")
+    # Filter the dataframe based on selected product names
+    self_products = df_self[df_self["Product Name"].isin(self_product_selected)]
 
-  # Filter the DataFrame based on selected values
-  filtered_df = df[
-    (df["Supplier Name"] == selected_supplier)
-    & (df["Country"] == selected_country)
-    & (df["Product Name"] == selected_product)
-    & (df["Unit Price"] <= price_filter)
-  ]
+    # Self SupplierName dropdown
+    self_supplier_selected = st.sidebar.multiselect("Supplier Name", df_self["Supplier Name"].unique(), default=df_self["Supplier Name"].unique())
 
-  def load_data(path: r"C:\Users\devan\Downloads\From Base\Price Benchmark_Quotation_1.xlsx"):
-    data = pd.read_excel(path)
-    return data
+    # Convert the list of selected supplier names to a pandas Series
+    self_supplier_selected = pd.Series(self_supplier_selected)
 
-  df4 = load_data("./Price Benchmark_Quotation_1.xlsx")
-  df6 = load_data("./Price_benchmark 1.xlsx")
+    # Filter the DataFrame based on the selected supplier
+    self_supplier = self_products[self_products["Supplier Name"].isin(self_supplier_selected)]
 
-  with st.expander("Data Preview 1"):
-    st.dataframe(df4)
+    # Self Country dropdown
+    self_country_selected = st.sidebar.multiselect("Country", df_self["Country"].unique(), default=df_self["Country"].unique())
 
-  with st.expander("Data Preview 2"):
-    st.dataframe(df6)
+    # Convert the list of selected country names to a pandas Series
+    self_country_selected = pd.Series(self_country_selected)
 
-  # Calculate statistics for Price_benchmark 1 sheet (assuming "Price" column)
-  if "Unit Price" in filtered_df.columns:
-    price_stats = filtered_df["Unit Price"]
-    highest_price = price_stats.max()
-    median_price = price_stats.median()
-    lowest_price = price_stats.min()
+    # Filter out data based on selected country
+    self_country = self_supplier[self_supplier["Country"].isin(self_country_selected)]
 
-  with st.expander("Highlights"):
-    # Columns for displaying statistics
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Highest Price", highest_price)
-    col2.metric("Median Price", f"{median_price}")
-    col3.metric("Lowest Price", f"{lowest_price}")
+    # Filter the dataframe based on selected product names
+    filtered_df = self_country
 
-  # Plot the first bar graph
-  fig1 = px.bar(df4, x="Supplier Name", y="Unit Price", color="Product name", barmode="group", text_auto=True, title="All Products Price")
+    # Filter the competitor data based on selected product names
+    comp_data = df_comp[df_comp["Product Name"].isin(self_product_selected)]
+
     
-  # Get selected product price from Price Benchmark_Quotation1 sheet (assuming "My Price" column)
-  selected_product_data = filtered_df[(filtered_df["Product Name"] == selected_product)]
 
-  if not selected_product_data.empty:
-    selected_product_price = selected_product_data["Unit Price"].values[0]
-  else:
-    selected_product_price = 0  # or any other default value you prefer
+    # Merge the filtered data from both sources
+    merged_data = pd.merge(filtered_df, comp_data, on=["Product Name"], how="inner")
 
-  #Prepare data for second bar chart
-  data = [selected_product_price, lowest_price]
-  labels = ["Your Price", "Lowest Competitor Price"]
 
-  # Plot the second bar chart
-  fig2 = px.bar(x=labels, y=data, color=labels, title="Price Comparison")
+    # Calculate the difference in unit prices
+    merged_data["Price Difference"] = merged_data["Unit Price_y"] - merged_data["Unit Price_x"]
 
-  with elements("dashboard"):
-    # You can create a draggable and resizable dashboard using
-    # any element available in Streamlit Elements.
-    from streamlit_elements import dashboard
+    grouped_data = merged_data.groupby("Product Name")
 
-    # First, build a default layout for every element you want to include in your dashboard
+    self_product_selected = merged_data["Product Name"].unique().tolist()
 
-    layout = [
-        # Parameters: element_identifier, x_pos, y_pos, width, height, [item properties...]
-        dashboard.Item("first_item", 0, 0, 2, 2),
-        dashboard.Item("second_item", 2, 0, 2, 2),
-        ]
+    # Assuming you have the merged_data DataFrame
+    num_tabs = len(self_product_selected)  # Determine the number of columns based on the selected products
 
-    # Next, create a dashboard layout using the 'with' syntax. It takes the layout
-    # as first parameter, plus additional properties you can find in the GitHub links below.
+    # Check if self_product_selected is not empty
+    if self_product_selected:
+        x = num_tabs  # Number of tabs
+        variable_names = st.tabs(self_product_selected)
 
-    # If you want to retrieve updated layout values as the user move or resize dashboard items,
-    # you can pass a callback to the onLayoutChange event parameter.
+        for i, tab_name in enumerate(variable_names):
+            with tab_name:
+                product = self_product_selected[i]
+                product_data = merged_data[merged_data["Product Name"] == product]
+                product_data_copy = merged_data[merged_data["Product Name"] == product].iloc[0]  # Get the data for the current product
+                # with st.popover(f"{product}",use_container_width= True):
+                col1, col2, col3 = st.columns(3)
+                # My Price
+                my_price = product_data_copy["Unit Price_x"]
+                col1.metric("My Price", f"${my_price:.2f}", "")
+                # Highest Price
+                highest_price = max(product_data["Unit Price_y"])
+                col2.metric("Highest Market Price", f"${highest_price:.2f}", "")
+                # Lowest Price
+                lowest_price = min(product_data["Unit Price_y"])
+                col3.metric("Lowest Market Price", f"${lowest_price:.2f}", "")
 
-    def handle_layout_change(updated_layout):
-        # You can save the layout in a file, or do anything you want with it.
-        # You can pass it back to dashboard.Grid() if you want to restore a saved layout.
-        print(updated_layout)
+                if not product_data.empty:
+                    fig = go.Figure()
+                    fig.add_trace(go.Bar(name="Curent Product Pricing", x=[product], y=[product_data["Unit Price_x"].values[0]]))
+                    for supplier, group in product_data.groupby("Supplier Name_y"):
+                        fig.add_trace(go.Bar(name=supplier, x=[product], y=group["Unit Price_y"].values))
+                    fig.update_layout(
+                        title=f"Unit Price Comparison for {product}",
+                        barmode="group",
+                        xaxis_title="Product",
+                        yaxis_title="Unit Price"
+                    )
+                    st.plotly_chart(fig)
+                else:
+                    st.write(f"No data available for product: {product}")
+    else:
+        st.write("")
+try:
+  with st.expander("INSIGHTS"):
+    #st.write(filtered_df)
+    #st.write(comp_data)
+    st.write(merged_data)
+except NameError:
+    st.warning("")
 
-    with dashboard.Grid(layout, onLayoutChange=handle_layout_change):
-        mui.Paper(fig1, key="first_item")
-        mui.Paper(fig2, key="second_item")
+
+#Insights button
+#'''result1 = st.button("Insights", key = i)
+# #             if result1:
+#               description_string = str(product_data_copy["More Info about the supplier"])
+#              for segment in description_string.split(", "):
+#                  st.write(segment)
+#            else:
+#             st.write("")'''
