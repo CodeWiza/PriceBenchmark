@@ -9,7 +9,7 @@ import base64
 st.set_page_config(page_title="Price Benchmark Analysis",page_icon=":bar_chart:", layout="wide")
 
 # Get the file path of the image
-image_path = Path("https://drive.google.com/file/d/1JLCqwlxBEQ8qiT7yM9xYZEn571em0X6l/view?usp=drive_link")
+image_path = "logo.png"
 
 # Read the image file as bytes
 image_bytes = image_path.read_bytes()
