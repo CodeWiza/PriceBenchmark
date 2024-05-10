@@ -8,28 +8,7 @@ import base64
 
 st.set_page_config(page_title="Price Benchmark Analysis",page_icon=":bar_chart:", layout="wide")
 
-# Get the file path of the image
-image_path = "https://github.com/CodeWiza/PriceBenchmarking-Dashboard/blob/main/logo.png"
-
-# Read the image file as bytes
-# image_bytes = image_path.read_bytes()
-
-# Encode the image bytes as base64
-encoded_image = image_path
-
-# Display the image in the sidebar
-st.sidebar.markdown(
-    f"""
-    <style>
-    .sidebar-image {{
-        max-width: 100%;
-        height: auto;
-    }}
-    </style>
-    <img src="data:image/png;base64,{encoded_image}" alt="Sidebar Image" class="sidebar-image">
-    """,
-    unsafe_allow_html=True
-)
+st.sidebar.image("https://github.com/CodeWiza/PriceBenchmarking-Dashboard/blob/main/logo.png", use_column_width=True)
 st.sidebar.header("Filters")
 
 # Upload Files
