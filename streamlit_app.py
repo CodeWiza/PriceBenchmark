@@ -15,7 +15,7 @@ image_path = "logo.png"
 image_bytes = image_path.read_bytes()
 
 # Encode the image bytes as base64
-encoded_image = base64.b64encode(image_bytes).decode()
+encoded_image = image_path
 
 # Display the image in the sidebar
 st.sidebar.markdown(
