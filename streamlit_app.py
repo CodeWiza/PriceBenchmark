@@ -9,7 +9,7 @@ import base64
 st.set_page_config(page_title="Price Benchmark Analysis",page_icon=":bar_chart:", layout="wide")
 
 st.sidebar.image("https://raw.githubusercontent.com/CodeWiza/PriceBenchmarking-Dashboard/main/logo.png", use_column_width=True)
-st.sidebar.header("Filters")
+
 
 # Upload Files
 def upload_csv_myproducts():
