@@ -78,8 +78,6 @@ with st.expander("Graphs", expanded= True):
     # Filter the competitor data based on selected product names
     comp_data = df_comp[df_comp["Product Name"].isin(self_product_selected)]
 
-    
-
     # Merge the filtered data from both sources
     merged_data = pd.merge(filtered_df, comp_data, on=["Product Name"], how="inner")
 
@@ -134,18 +132,6 @@ with st.expander("Graphs", expanded= True):
         st.write("")
 try:
   with st.expander("INSIGHTS"):
-    #st.write(filtered_df)
-    #st.write(comp_data)
     st.write(merged_data)
 except NameError:
     st.warning("")
-
-
-#Insights button
-#'''result1 = st.button("Insights", key = i)
-# #             if result1:
-#               description_string = str(product_data_copy["More Info about the supplier"])
-#              for segment in description_string.split(", "):
-#                  st.write(segment)
-#            else:
-#             st.write("")'''
